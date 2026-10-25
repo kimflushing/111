@@ -1,0 +1,205 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Little Toast Studio</title>
+<style>
+:root{--pink:#f6cbd2;--pink2:#ffe9eb;--cream:#fff8e9;--brown:#714a37;--ink:#5c4036;--green:#dce8cf}
+*{box-sizing:border-box} body{margin:0;background:#f7e9d9;color:var(--ink);font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif}
+button{font:inherit;cursor:pointer;border:0;touch-action:manipulation}
+.game{max-width:1100px;margin:auto;min-height:100vh;background:#fff9ef;border-left:1px solid #ead8c7;border-right:1px solid #ead8c7}
+header{padding:16px 18px 12px;background:linear-gradient(135deg,#f5c8d0,#ffe5dc);border-bottom:3px solid #e9b7bc;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-size:clamp(20px,4vw,30px);font-weight:1000;letter-spacing:-1px}.brand small{display:block;font-size:11px;letter-spacing:2px;font-weight:700;margin-top:2px}
+.money{background:#fff9ed;border:2px solid #e8b6a6;border-radius:18px;padding:8px 12px;font-weight:900;white-space:nowrap}
+nav{display:flex;gap:7px;padding:10px;background:#fff1e6;overflow-x:auto;border-bottom:1px solid #f0d8c6}
+nav button{flex:1;min-width:94px;border-radius:13px;padding:10px 8px;background:#fffaf3;color:#9c7864;border:1px solid #eed8c8;font-weight:800}
+nav button.active{background:#9d6b52;color:#fff;border-color:#9d6b52}
+main{padding:14px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(270px,.85fr);gap:14px}
+.panel{background:white;border:2px solid #f0dfcf;border-radius:20px;overflow:hidden;box-shadow:0 4px 0 #efdfd0}
+.panelhead{padding:12px 14px;background:#fff0e9;border-bottom:1px solid #f0dfcf;display:flex;justify-content:space-between;align-items:center;font-weight:900}
+.panelbody{padding:12px}
+.counter{font-size:12px;color:#9c7864}
+.worktop{background:#f8dce0 url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h12v12H0zM12 12h12v12H12z' fill='%23fff' fill-opacity='.35'/%3E%3C/svg%3E");padding:12px;min-height:360px;display:flex;align-items:center;justify-content:center;position:relative}
+.board{width:min(100%,470px);aspect-ratio:1.18;background:#e9c49a;border:8px solid #c99766;border-radius:28px;box-shadow:inset 0 0 0 2px #f4dbb4,0 7px 12px #a76e4c55;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.board:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(7deg,transparent 0 25px,#b87e4c18 26px 28px)}
+.toast{position:relative;width:52%;height:70%;background:linear-gradient(145deg,#f9cf80,#d88942 70%,#ad5a2e);border:10px solid #b96535;border-radius:28% 28% 24% 24% / 22% 22% 18% 18%;box-shadow:inset 0 0 0 5px #f8d9a0,inset 0 0 0 10px #d88a48,0 6px 4px #89502b55;transform:rotate(-8deg);overflow:hidden;z-index:1}
+.toast.bread{background:linear-gradient(145deg,#fff0bd,#e8bd75);border-color:#d3a15e}
+.toast.bagel{width:52%;height:55%;border-radius:50%;background:linear-gradient(145deg,#e9a957,#b8642e)}
+.hole{position:absolute;width:28%;height:28%;border-radius:50%;background:#e9c49a;left:36%;top:36%;box-shadow:inset 0 2px 4px #9d542e}
+.topping{position:absolute;z-index:3;transform:translate(-50%,-50%);font-size:clamp(18px,3.7vw,34px);filter:drop-shadow(1px 2px 1px #7b442c45);pointer-events:none;user-select:none}
+.sauce{position:absolute;z-index:2;inset:0;pointer-events:none;opacity:.9}
+.instruction{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#795541;font-weight:800;z-index:4;text-shadow:0 1px #fff7}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.action{border-radius:13px;padding:12px 10px;font-weight:900;flex:1;min-width:90px;background:#f6d0d5;color:#754d46;border:1px solid #e9b2bb}
+.action.primary{background:#8c604b;color:white;border-color:#8c604b}.action.green{background:#dce9cf;color:#4e6b43;border-color:#c3d7b4}.action:disabled{opacity:.45;cursor:not-allowed}
+.notice{font-size:12px;line-height:1.5;color:#9b7a66;margin:10px 2px 0;min-height:18px}
+.category{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px}
+.category button{white-space:nowrap;padding:8px 11px;border-radius:12px;background:#fff4ec;color:#98735d;font-size:13px;font-weight:800;border:1px solid #f0dfcf}
+.category button.active{background:#9d6b52;color:white}
+.ingredients{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ingredient{background:#fffaf3;border:1px solid #efdaca;border-radius:14px;padding:9px 4px 8px;min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#765443}
+.ingredient:active{transform:scale(.97)}.ingredient .emoji{font-size:29px;line-height:1.1}.ingredient .name{font-size:12px;font-weight:900}.ingredient .price{font-size:10px;color:#b28b72}
+.ingredient:disabled{opacity:.35}
+.sidepanel{display:flex;flex-direction:column;gap:14px}
+.recipebox{background:#fff9ef;border:1px dashed #e8c7ae;border-radius:15px;padding:12px}
+.recipebox strong{display:block;font-size:14px;margin-bottom:6px}.recipebox p{font-size:12px;line-height:1.6;margin:0;color:#98735d}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stat{background:#fff6ed;border-radius:12px;padding:9px 4px;text-align:center}.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:#a17f69}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.shelfitem{background:#fff8ef;border:1px solid #efdfcf;border-radius:13px;padding:10px 5px;text-align:center}.shelfitem .emoji{font-size:25px}.shelfitem b{display:block;font-size:12px;margin:4px 0}.shelfitem small{color:#a17f69}
+.empty{grid-column:1/-1;text-align:center;padding:22px 8px;color:#b08b73;font-size:13px}
+.hidden{display:none!important}
+footer{text-align:center;padding:12px;color:#b08c76;font-size:11px}
+@media(max-width:720px){main{grid-template-columns:1fr;padding:10px;gap:10px}.worktop{min-height:300px}.board{width:100%;max-width:440px}.toast{border-width:7px}.sidepanel{display:grid;grid-template-columns:1fr}.panelhead{padding:11px 12px}.panelbody{padding:10px}.ingredient{min-height:78px}.ingredient .emoji{font-size:27px}}
+@media(max-width:380px){header{padding:12px}.money{font-size:12px;padding:7px 8px}main{padding:7px}.worktop{padding:8px;min-height:270px}.ingredients{gap:6px}.ingredient{min-height:74px}.toolbar .action{font-size:12px;padding:11px 5px}}
+</style>
+</head>
+<body>
+<div class="game">
+<header><div class="brand">🍞 Little Toast Studio<small>BAKE · DECORATE · EAT · SELL</small></div><div class="money">🪙 <span id="money">120</span> G</div></header>
+<nav aria-label="게임 메뉴"><button class="active" data-view="kitchen">🍞 주방</button><button data-view="shop">🧺 재료 가게</button><button data-view="shelf">🍽️ 진열대</button></nav>
+<main>
+<section class="panel" id="kitchen">
+<div class="panelhead"><span>오늘의 토스트 만들기 ♡</span><span class="counter" id="stage">1 / 준비</span></div>
+<div class="worktop"><div class="board" id="board"><div class="toast" id="toast"></div><div class="instruction" id="instruction">재료를 골라 토스트에 올려 봐!</div></div></div>
+<div class="panelbody">
+<div class="stats"><div class="stat"><b id="ingredientCount">0</b><span>올린 재료</span></div><div class="stat"><b id="quality">—</b><span>예상 품질</span></div><div class="stat"><b id="value">0 G</b><span>예상 판매가</span></div></div>
+<div class="toolbar"><button class="action" id="undo">↶ 하나 빼기</button><button class="action" id="clear">🧽 새로 만들기</button><button class="action primary" id="bake">🔥 굽기!</button></div>
+<div class="toolbar"><button class="action green" id="eat">😋 직접 먹기</button><button class="action primary" id="sell">🪙 진열대에 팔기</button></div>
+<p class="notice" id="notice" aria-live="polite">재료를 누르면 토스트 위에 올라가요. 같은 재료도 여러 번 올릴 수 있어요!</p>
+</div>
+</section>
+<aside class="sidepanel">
+<section class="panel">
+<div class="panelhead"><span>재료 바구니 🧺</span><span class="counter">재료를 톡!</span></div>
+<div class="panelbody"><div class="category" id="categories"></div><div class="ingredients" id="ingredients"></div></div>
+</section>
+<section class="panel">
+<div class="panelhead"><span>레시피 노트 📒</span><span class="counter" id="recipeCount">0개 발견</span></div>
+<div class="panelbody"><div class="recipebox"><strong id="recipeName">아직 이름 없는 토스트</strong><p id="recipeDesc">빵을 고르고 좋아하는 재료를 올려 봐. 굽고 나면 새로운 레시피를 발견할 수도 있어!</p></div></div>
+</section>
+</aside>
+<section class="panel hidden" id="shopPanel"><div class="panelhead"><span>재료 가게 🧺</span><span class="counter">보유 골드로 구매</span></div><div class="panelbody"><p class="notice">재료를 사면 주방에서 사용할 수 있어요. 기본 재료는 무료로 조금 제공돼요!</p><div class="ingredients" id="shopItems"></div></div></section>
+<section class="panel hidden" id="shelfPanel"><div class="panelhead"><span>우리 가게 진열대 🍽️</span><span class="counter" id="shelfCount">0개</span></div><div class="panelbody"><div class="shelf" id="shelfItems"><div class="empty">아직 진열된 빵이 없어! 먼저 토스트를 만들어 팔아 봐.</div></div></div></section>
+</main>
+<footer>작은 토스트 가게에서 오늘도 맛있는 하루 ♡ · 진행 상황은 이 페이지 안에서만 유지돼요.</footer>
+</div>
+<script>
+(() => {
+const all = [
+ {id:'butter',name:'버터',emoji:'🧈',price:2,cat:'spread',quality:2,desc:'고소하고 부드러운 기본 맛.'},
+ {id:'jam',name:'딸기잼',emoji:'🍓',price:3,cat:'spread',quality:3,desc:'달콤새콤한 딸기잼.'},
+ {id:'honey',name:'꿀',emoji:'🍯',price:3,cat:'spread',quality:3,desc:'반짝반짝 달콤한 꿀.'},
+ {id:'choco',name:'초콜릿',emoji:'🍫',price:4,cat:'sweet',quality:4,desc:'진한 초콜릿 풍미.'},
+ {id:'cream',name:'생크림',emoji:'🍦',price:4,cat:'sweet',quality:3,desc:'폭신하고 부드러운 크림.'},
+ {id:'marsh',name:'마시멜로',emoji:'☁️',price:3,cat:'sweet',quality:2,desc:'쫀득쫀득 구름 토핑.'},
+ {id:'banana',name:'바나나',emoji:'🍌',price:3,cat:'fruit',quality:3,desc:'달콤한 바나나 조각.'},
+ {id:'blueberry',name:'블루베리',emoji:'🫐',price:4,cat:'fruit',quality:4,desc:'톡톡 터지는 새콤한 열매.'},
+ {id:'kiwi',name:'키위',emoji:'🥝',price:4,cat:'fruit',quality:3,desc:'상큼한 초록 과일.'},
+ {id:'cheese',name:'치즈',emoji:'🧀',price:3,cat:'savory',quality:3,desc:'짭조름하고 고소한 치즈.'},
+ {id:'egg',name:'달걀',emoji:'🍳',price:4,cat:'savory',quality:4,desc:'든든한 아침 토핑.'},
+ {id:'avocado',name:'아보카도',emoji:'🥑',price:5,cat:'savory',quality:4,desc:'부드럽고 담백한 맛.'},
+ {id:'sprinkle',name:'스프링클',emoji:'🌈',price:3,cat:'decor',quality:2,desc:'알록달록 귀여운 장식.'},
+ {id:'cookie',name:'쿠키 조각',emoji:'🍪',price:3,cat:'decor',quality:3,desc:'바삭한 쿠키 크럼블.'},
+ {id:'heart',name:'하트 장식',emoji:'💗',price:2,cat:'decor',quality:2,desc:'사랑을 담은 하트.'}
+];
+const cats=[['all','전체'],['spread','잼·스프레드'],['sweet','달콤한 토핑'],['fruit','과일'],['savory','든든한 토핑'],['decor','장식']];
+let money=120, inventory={butter:5,jam:3,honey:2,choco:2,cream:2,marsh:2,banana:2,blueberry:1,kiwi:1,cheese:2,egg:1,avocado:1,sprinkle:3,cookie:2,heart:3};
+let selectedCat='all', toppings=[], baked=false, recipes=new Set(), shelf=[];
+const $=id=>document.getElementById(id);
+const moneyEl=$('money');
+function setNotice(s){$('notice').textContent=s}
+function categoryUI(){ $('categories').innerHTML=cats.map(([id,label])=>`<button type="button" data-cat="${id}" class="${selectedCat===id?'active':''}">${label}</button>`).join('');}
+function renderIngredients(){
+ const list=all.filter(x=>selectedCat==='all'||x.cat===selectedCat);
+ $('ingredients').innerHTML=list.map(x=>`<button class="ingredient" type="button" data-ing="${x.id}" ${inventory[x.id]<=0?'disabled':''}><span class="emoji">${x.emoji}</span><span class="name">${x.name} ×${inventory[x.id]||0}</span><span class="price">가게 ${x.price}G</span></button>`).join('');
+}
+function renderShop(){
+ $('shopItems').innerHTML=all.map(x=>`<button class="ingredient" type="button" data-buy="${x.id}"><span class="emoji">${x.emoji}</span><span class="name">${x.name}</span><span class="price">${x.price*3}G 구매</span></button>`).join('');
+}
+function renderMoney(){moneyEl.textContent=money}
+function addTopping(id){
+ if(!inventory[id]){setNotice('재료가 부족해! 재료 가게에서 더 사 오자 🧺');return}
+ inventory[id]--;const item=all.find(x=>x.id===id);
+ const positions=[[29,25],[52,23],[73,30],[25,49],[48,46],[72,50],[33,69],[56,68],[68,75],[43,35],[59,56],[22,63]];
+ const pos=positions[toppings.length%positions.length];
+ toppings.push({id,x:pos[0]+Math.random()*7-3.5,y:pos[1]+Math.random()*7-3.5});
+ baked=false;renderToppings();renderIngredients();updateStats();setNotice(`${item.name} 올렸다! 다른 재료도 더해 봐 ♡`);
+}
+function renderToppings(){
+ document.querySelectorAll('.topping').forEach(n=>n.remove());
+ toppings.forEach(t=>{const item=all.find(x=>x.id===t.id);const span=document.createElement('span');span.className='topping';span.textContent=item.emoji;span.style.left=t.x+'%';span.style.top=t.y+'%';$('toast').appendChild(span)});
+ $('toast').classList.toggle('bread',baked);
+ $('stage').textContent=baked?'3 / 완성':'2 / 토핑';
+ $('instruction').textContent=baked?'노릇노릇 완성! 먹거나 판매해 봐.':'재료를 톡톡 눌러 올려 봐!';
+}
+function recipeInfo(){
+ const ids=toppings.map(t=>t.id);
+ let name='나만의 토스트',desc='세상에 하나뿐인 조합! 굽고 나면 이름을 붙일 수 있어.';
+ if(ids.includes('jam')&&ids.includes('cream')){name='딸기 생크림 토스트';desc='딸기잼과 생크림의 달콤한 조합!'}
+ else if(ids.includes('choco')&&ids.includes('banana')){name='초코 바나나 토스트';desc='초콜릿과 바나나가 만난 인기 디저트.'}
+ else if(ids.includes('egg')&&ids.includes('cheese')){name='치즈 에그 토스트';desc='든든하고 고소한 브런치 토스트.'}
+ else if(ids.includes('honey')&&ids.includes('butter')){name='허니 버터 토스트';desc='버터 향과 꿀의 달콤함이 가득해.'}
+ else if(ids.includes('blueberry')&&ids.includes('cream')){name='블루베리 크림 토스트';desc='상큼한 베리와 부드러운 크림.'}
+ else if(ids.length===0){name='아직 이름 없는 토스트';desc='빵을 고르고 좋아하는 재료를 올려 봐. 굽고 나면 새로운 레시피를 발견할 수도 있어!'}
+ $('recipeName').textContent=name;$('recipeDesc').textContent=desc;
+ return {name,desc};
+}
+function updateStats(){
+ const score=toppings.reduce((n,t)=>n+(all.find(x=>x.id===t.id)?.quality||0),0);
+ const val=toppings.reduce((n,t)=>n+(all.find(x=>x.id===t.id)?.price||0),0)+12+(baked?8:0);
+ $('ingredientCount').textContent=toppings.length;
+ $('quality').textContent=toppings.length?(score>=12?'★★★★★':score>=7?'★★★★☆':score>=4?'★★★☆☆':'★★☆☆☆'):'—';
+ $('value').textContent=toppings.length?val+' G':'0 G';
+ $('recipeCount').textContent=recipes.size+'개 발견';
+ recipeInfo();
+ $('bake').textContent=baked?'✨ 다시 굽기':'🔥 굽기!';
+}
+function resetToast(){toppings=[];baked=false;renderToppings();updateStats();renderIngredients();setNotice('새 빵을 준비했어! 어떤 맛으로 만들까?')}
+function bakeToast(){
+ if(!toppings.length){setNotice('먼저 재료를 하나 이상 올려 줘!');return}
+ baked=true;renderToppings();updateStats();
+ const r=recipeInfo();recipes.add(r.name);$('recipeCount').textContent=recipes.size+'개 발견';
+ setNotice('딩! 노릇노릇하게 구워졌어. 이제 먹거나 판매할 수 있어 🍞');
+}
+function eatToast(){
+ if(!baked){setNotice('먼저 토스트를 구워야 먹을 수 있어! 🔥');return}
+ if(!toppings.length)return;
+ const r=recipeInfo();recipes.add(r.name);setNotice(`냠냠… ${r.name}을(를) 먹었어! 행복 +${Math.min(20,5+toppings.length*2)} ♡`);
+ resetToast();
+}
+function sellToast(){
+ if(!baked){setNotice('판매하기 전에 토스트를 구워 줘! 🔥');return}
+ if(!toppings.length)return;
+ const r=recipeInfo(),val=toppings.reduce((n,t)=>n+(all.find(x=>x.id===t.id)?.price||0),0)+12+8;
+ money+=val;shelf.unshift({name:r.name,value:val,emoji:'🍞',count:toppings.length});
+ recipes.add(r.name);renderMoney();renderShelf();setNotice(`${r.name} 판매 완료! ${val}G를 벌었어 🪙`);resetToast();
+}
+function renderShelf(){
+ $('shelfCount').textContent=shelf.length+'개';
+ $('shelfItems').innerHTML=shelf.length?shelf.map(s=>`<div class="shelfitem"><div class="emoji">${s.emoji}</div><b>${s.name}</b><small>${s.value}G · 토핑 ${s.count}개</small></div>`).join(''):'<div class="empty">아직 진열된 빵이 없어! 먼저 토스트를 만들어 팔아 봐.</div>';
+}
+function showView(view){
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+ $('kitchen').classList.toggle('hidden',view!=='kitchen');
+ $('shopPanel').classList.toggle('hidden',view!=='shop');
+ $('shelfPanel').classList.toggle('hidden',view!=='shelf');
+}
+$('categories').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;selectedCat=b.dataset.cat;categoryUI();renderIngredients()});
+$('ingredients').addEventListener('click',e=>{const b=e.target.closest('[data-ing]');if(b)addTopping(b.dataset.ing)});
+$('shopItems').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(!b)return;const item=all.find(x=>x.id===b.dataset.buy),cost=item.price*3;if(money<cost){setNotice('골드가 부족해! 토스트를 만들어 팔아 보자.');return}money-=cost;inventory[item.id]=(inventory[item.id]||0)+3;renderMoney();renderIngredients();setNotice(`${item.name} 3개를 샀어! (-${cost}G)`)});
+document.querySelector('nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)showView(b.dataset.view)});
+$('undo').addEventListener('click',()=>{const t=toppings.pop();if(!t){setNotice('아직 뺄 재료가 없어!');return}inventory[t.id]++;baked=false;renderToppings();renderIngredients();updateStats();setNotice('마지막 재료를 바구니에 돌려놨어.')});
+$('clear').addEventListener('click',()=>{toppings.forEach(t=>inventory[t.id]++);resetToast()});
+$('bake').addEventListener('click',bakeToast);$('eat').addEventListener('click',eatToast);$('sell').addEventListener('click',sellToast);
+categoryUI();renderIngredients();renderShop();renderMoney();renderToppings();updateStats();
+})();
+</script>
+</body>
+</html>'''
+
+path = Path("/mnt/data/little_toast_studio.html")
+path.write_text(html, encoding="utf-8")
+print(f"완성했어: {path}")
